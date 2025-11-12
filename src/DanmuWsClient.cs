@@ -85,6 +85,8 @@ namespace EasyDANMU.src
         }
         #endregion
 
+        private static string Clean(string? s) =>
+    s == null ? "" : new string(s.Where(c => !char.IsControl(c)).ToArray());
         #region --- 解析链路：切包→解压→长度+JSON→打印 ---
         private void ParseMessage(ReadOnlySpan<byte> raw)
         {
@@ -106,7 +108,11 @@ namespace EasyDANMU.src
 
                 // 3. 长度+JSON 协议（单条/多条）→ 直接拿 JsonElement
                 foreach (var cmd in ExtractCommands(decompressed))
+                {
                     ProcessCommand(cmd);
+                    Console.WriteLine($"[Split] pack_len={h.pack_len}, bodyLen={body.Length}");
+                }
+
                 //Console.WriteLine($"[DEBUG] decompressed len={decompressed.Length}, first16={Convert.ToHexString(decompressed.AsSpan(0, Math.Min(16, decompressed.Length)))}");
             }
         }
@@ -122,13 +128,16 @@ namespace EasyDANMU.src
                 var h = new HeaderTuple(
                     ReadU32BE(raw[0..4]), ReadU16BE(raw[4..6]), ReadU16BE(raw[6..8]),
                     ReadU32BE(raw[8..12]), ReadU32BE(raw[12..16]));
-                if (raw.Length < h.pack_len) break;
-                list.Add((h, raw[16..(int)h.pack_len].ToArray()));
-                raw = raw[(int)h.pack_len..];
+
+                if (raw.Length < h.pack_len) break;          // 剩余字节还不够一条
+
+                int bodyLen = (int)(h.pack_len - 16);        // ← 关键修正
+                list.Add((h, raw[16..(16 + bodyLen)].ToArray()));
+
+                raw = raw[(int)h.pack_len..];                // 游标移到下一包
             }
             return list;
         }
-
         /// <summary>
         /// 提前过滤“明显非 JSON”段，返回合法 JsonElement
         /// </summary>
@@ -170,8 +179,22 @@ namespace EasyDANMU.src
 
             static bool TryParse(ReadOnlySpan<byte> seg, out JsonDocument doc)
             {
-                try { doc = JsonDocument.Parse(seg.ToArray()); return true; }
-                catch { doc = null!; return false; }
+                // 1. 快速预检：必须以 { 开头，以 } 结尾
+                if (seg.Length < 2 || seg[0] != '{' || seg[^1] != '}')
+                {
+                    doc = null!;
+                    return false;
+                }
+                try
+                {
+                    doc = JsonDocument.Parse(seg.ToArray());
+                    return true;
+                }
+                catch
+                {
+                    doc = null!;
+                    return false;   // 静默丢弃，不打印
+                }
             }
         }
         private static bool TryParse(ReadOnlySpan<byte> seg, out JsonDocument doc)
@@ -188,9 +211,7 @@ namespace EasyDANMU.src
             }
         }
 
-        /// <summary>
-        /// 单行 JSON → 控制台打印
-        /// </summary>
+
         /// <summary>
         /// 业务白名单，想加功能只扩这里
         /// </summary>
@@ -205,43 +226,60 @@ namespace EasyDANMU.src
 
         private void ProcessCommand(JsonElement root)
         {
-            if (!root.TryGetProperty("cmd", out var cmd)) return;
-            var cmdStr = cmd.GetString()!;
-
-            // 白名单过滤
-            if (!PrintCmds.Contains(cmdStr)) return;
-
-            // 字段缺失用 TryGetProperty → 不抛 KeyNotFoundException
-            switch (cmdStr)
+            if (root.TryGetProperty("cmd", out var cmdElement) &&
+                cmdElement.ValueKind == JsonValueKind.String)
             {
-                case "DANMU_MSG":
-                    if (root.TryGetProperty("info", out var info))
-                        Console.WriteLine($"💬 {info[2][1].GetString()}：{info[1].GetString()}");
-                    break;
-                case "INTERACT_WORD":
-                case "INTERACT_WORD_V2":
-                    if (root.TryGetProperty("data", out var data) &&
-                        data.TryGetProperty("uname", out var un) &&
-                        data.TryGetProperty("msg_type", out var mt))
-                        Console.WriteLine($"👏 {mt.GetInt32() switch
-                        {
-                            1 => "进入",
-                            2 => "关注",
-                            3 => "分享",
-                            4 => "特别关注",
-                            5 => "互关",
-                            6 => "点赞",
-                            _ => "互动"
-                        }}：{un.GetString()}");
-                    break;
-                    // 其余 case 同样用 TryGetProperty 写法
+                var cmdStr = cmdElement.GetString();
+                if (!PrintCmds.Contains(cmdStr)) return;
+
+                // 继续处理
+                try
+                {
+                    switch (cmdStr)
+                    {
+                        case "DANMU_MSG":
+                            var info = root.GetProperty("info");
+                            Console.WriteLine($"💬 {Clean(info[2][1].GetString())}：{Clean(info[1].GetString())}");
+                            break;
+                        case "SUPER_CHAT_MESSAGE":
+                            var sc = root.GetProperty("data");
+                            Console.WriteLine($"🔔 醒目留言 ¥{sc.GetProperty("price").GetInt32() / 100.0:F2}  {sc.GetProperty("uname").GetString()}：{sc.GetProperty("message").GetString()}");
+                            break;
+                        case "SEND_GIFT":
+                            var g = root.GetProperty("data");
+                            Console.WriteLine($"🎁 {g.GetProperty("uname").GetString()} 赠送 {g.GetProperty("giftName").GetString()} ×{g.GetProperty("num").GetInt32()}");
+                            break;
+                        case "INTERACT_WORD":
+                        case "INTERACT_WORD_V2":
+                            var iw = root.GetProperty("data");
+                            var action = iw.GetProperty("msg_type").GetInt32() switch
+                            {
+                                1 => "进入",
+                                2 => "关注",
+                                3 => "分享",
+                                4 => "特别关注",
+                                5 => "互关",
+                                6 => "点赞",
+                                _ => "互动"
+                            };
+                            Console.WriteLine($"👏 {action}：{iw.GetProperty("uname").GetString()}");
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[BizSkip] {cmdStr} 字段缺失：{ex.Message}");
+                }
             }
+
+            
         }
+
 
 
         #endregion
 
-        #region --- 工具方法 ---
+            #region --- 工具方法 ---
         private static uint ReadU32BE(ReadOnlySpan<byte> s) => BinaryPrimitives.ReadUInt32BigEndian(s);
         private static ushort ReadU16BE(ReadOnlySpan<byte> s) => BinaryPrimitives.ReadUInt16BigEndian(s);
 

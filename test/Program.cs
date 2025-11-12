@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using EasyDANMU.src;   // WebClient 所在命名空间
 
-await TestHostServerAsync(5513659);   // 任意房间号
+await TestHostServerAsync(545068);   // 任意房间号
 
 static async Task TestHostServerAsync(int tmpRoomId)
 {
