@@ -76,7 +76,7 @@ namespace EasyDANMU.src
         {
             //Console.WriteLine($"[ParseMessage] 原始数据长度={data.Length} 字节");
             int offset = 0;
-            while(offset < data.Length)
+            while(offset+16 <= data.Length)
             {
                 try
                 {
