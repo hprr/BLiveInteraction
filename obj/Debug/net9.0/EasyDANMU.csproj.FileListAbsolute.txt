@@ -1,0 +1,17 @@
+C:\DANMU\EasyDANMU\bin\Debug\net9.0\EasyDANMU.exe
+C:\DANMU\EasyDANMU\bin\Debug\net9.0\EasyDANMU.deps.json
+C:\DANMU\EasyDANMU\bin\Debug\net9.0\EasyDANMU.runtimeconfig.json
+C:\DANMU\EasyDANMU\bin\Debug\net9.0\EasyDANMU.dll
+C:\DANMU\EasyDANMU\bin\Debug\net9.0\EasyDANMU.pdb
+C:\DANMU\EasyDANMU\bin\Debug\net9.0\websocket-sharp-core.dll
+C:\DANMU\EasyDANMU\obj\Debug\net9.0\EasyDANMU.csproj.AssemblyReference.cache
+C:\DANMU\EasyDANMU\obj\Debug\net9.0\EasyDANMU.GeneratedMSBuildEditorConfig.editorconfig
+C:\DANMU\EasyDANMU\obj\Debug\net9.0\EasyDANMU.AssemblyInfoInputs.cache
+C:\DANMU\EasyDANMU\obj\Debug\net9.0\EasyDANMU.AssemblyInfo.cs
+C:\DANMU\EasyDANMU\obj\Debug\net9.0\EasyDANMU.csproj.CoreCompileInputs.cache
+C:\DANMU\EasyDANMU\obj\Debug\net9.0\EasyDANMU.csproj.Up2Date
+C:\DANMU\EasyDANMU\obj\Debug\net9.0\EasyDANMU.dll
+C:\DANMU\EasyDANMU\obj\Debug\net9.0\refint\EasyDANMU.dll
+C:\DANMU\EasyDANMU\obj\Debug\net9.0\EasyDANMU.pdb
+C:\DANMU\EasyDANMU\obj\Debug\net9.0\EasyDANMU.genruntimeconfig.cache
+C:\DANMU\EasyDANMU\obj\Debug\net9.0\ref\EasyDANMU.dll
