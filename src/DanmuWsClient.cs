@@ -9,6 +9,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Buffers.Binary;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Runtime.InteropServices;
 
 namespace EasyDANMU.src
 {
@@ -19,6 +21,7 @@ namespace EasyDANMU.src
         private readonly string _url;
         private readonly AuthPacket _auth;
         private readonly byte[] _buffer = new byte[4096];
+        //取消令牌
         private readonly CancellationTokenSource _cts = new();
         #endregion
 
@@ -35,7 +38,100 @@ namespace EasyDANMU.src
             Console.WriteLine($"[WS] 连接成功 -> {_url}");
             await SendAuthAsync();
             _ = Task.Run(HeartbeatLoop, _cts.Token);
-            await ReceiveLoop();
+            await ReceiveLoop(_cts.Token);
+        }
+
+        //循环接收
+        private async Task ReceiveLoop(CancellationToken token)
+        {
+            Console.WriteLine("【接收循环】已启动，等待消息...");
+
+            using var ms = new MemoryStream();          // 拼包缓存
+            var segment = new ArraySegment<byte>(_buffer); // 每次都复用同一块内存
+
+            while (_ws.State == WebSocketState.Open && !token.IsCancellationRequested)
+            {
+                WebSocketReceiveResult result;
+                do
+                {
+                    // 用类字段 _buffer 接收
+                    result = await _ws.ReceiveAsync(segment, token);
+                    if (result.MessageType == WebSocketMessageType.Close)
+                        return;
+
+                    ms.Write(_buffer, 0, result.Count);   // 拼包
+                }
+                while (!result.EndOfMessage);
+
+                if (result.MessageType == WebSocketMessageType.Binary)
+                    await ParseWsMessage(ms.ToArray());
+                else
+                    Console.WriteLine($"room={_auth.roomid} unknown message type={result.MessageType}");
+
+                ms.SetLength(0); // 重置流，准备下一条消息
+            }
+        }
+        //解析ws原始数据(可能包含多个包)
+        private async Task ParseWsMessage(byte[] data)
+        {
+            //Console.WriteLine($"[ParseMessage] 原始数据长度={data.Length} 字节");
+            int offset = 0;
+            while(offset < data.Length)
+            {
+                try
+                {
+                    //1.读取头部
+                    HeaderTuple header = UnpackHeader(data, offset);
+                    Console.WriteLine($"[ParseWsMessage] pack_len={header.pack_len}, op={header.operation}, ver={header.ver}");
+                    //2.裁剪包体&获取偏移
+                    int bodyLen = (int)(header.pack_len - header.raw_header_size);
+                    int packEnd = offset + (int)header.pack_len;
+
+                    //3.边界保护
+                    if(packEnd > data.Length)
+                    {
+                        Console.WriteLine($"[ParseWsMessage] room={_auth.roomid} 包长度越界");
+                        break;
+                    }
+                    //走到这里说明所有参数已经初始化结束了
+                    //4.按照operation/ver 分发解析任务
+                    switch (header.operation, header.ver) 
+                    {
+                        //心跳回复处理方法, 传入原始data和对应的偏移量
+                        case ((uint)Operation.HEARTBEAT_REPLY, (ushort)1):
+                            //HandleHeartbeat(data, offset + (int)header.raw_header_size);
+                            break;
+                        
+                        case ((uint)Operation.SEND_MSG_REPLY, (ushort)0):
+                        case ((uint)Operation.AUTH_REPLY, (ushort)1):
+                            //await HandleJsonBody(header, data, offset + (int)header.raw_header_size, bodyLen);
+                            break;
+
+                        case ((uint)Operation.SEND_MSG_REPLY, 3):
+                        case ((uint)Operation.AUTH_REPLY, 3):
+                            //await HandleZlibBody(header, data, offset + (int)header.raw_header_size, bodyLen);
+                            break;
+
+                        default:
+                            Console.WriteLine($"[ParseWsMessage] room={_auth.roomid} 未处理 op={header.operation}, ver={header.ver}");
+                            break;
+                    }
+                    //重置偏移量
+                    offset = packEnd;
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine($"[ParseWsMessage] room={_auth.roomid} 头部解析失败, offset={offset}");
+                    break;
+                }
+
+            }
+
+        }
+
+        private async Task ParseBusinessMessage(HeaderTuple header, byte[] body)
+        {
+            throw new NotImplementedException();
         }
 
         public void Dispose()
@@ -73,211 +169,10 @@ namespace EasyDANMU.src
         }
         #endregion
 
-        #region --- 收包 ---
-        private async Task ReceiveLoop()
-        {
-            while (!_cts.Token.IsCancellationRequested)
-            {
-                var result = await _ws.ReceiveAsync(_buffer, _cts.Token);
-                if (result.MessageType == WebSocketMessageType.Close) break;
-                ParseMessage(_buffer.AsSpan(0, result.Count));
-            }
-        }
-        #endregion
-
-        private static string Clean(string? s) =>
-    s == null ? "" : new string(s.Where(c => !char.IsControl(c)).ToArray());
-        #region --- 解析链路：切包→解压→长度+JSON→打印 ---
-        private void ParseMessage(ReadOnlySpan<byte> raw)
-        {
-
-            if (raw.Length < 16) return;
-
-            // 1. 切包（可能一帧多包）
-            var packets = SplitPackets(raw);
-            foreach (var (h, body) in packets)
-            {
-                // 2. 解压（ver=2 zlib  ver=3 brotli  ver=1 不压）
-                var decompressed = h.ver switch
-                {
-                    2 => DecompressZlib(body),
-                    3 => DecompressBrotli(body),
-                    _ => body
-                };
-
-
-                // 3. 长度+JSON 协议（单条/多条）→ 直接拿 JsonElement
-                foreach (var cmd in ExtractCommands(decompressed))
-                {
-                    ProcessCommand(cmd);
-                    Console.WriteLine($"[Split] pack_len={h.pack_len}, bodyLen={body.Length}");
-                }
-
-                //Console.WriteLine($"[DEBUG] decompressed len={decompressed.Length}, first16={Convert.ToHexString(decompressed.AsSpan(0, Math.Min(16, decompressed.Length)))}");
-            }
-        }
-
-        /// <summary>
-        /// 把 raw 切成 (header,body) 列表，body 已复制成 byte[]
-        /// </summary>
-        private static List<(HeaderTuple h, byte[] body)> SplitPackets(ReadOnlySpan<byte> raw)
-        {
-            var list = new List<(HeaderTuple, byte[])>();
-            while (raw.Length >= 16)
-            {
-                var h = new HeaderTuple(
-                    ReadU32BE(raw[0..4]), ReadU16BE(raw[4..6]), ReadU16BE(raw[6..8]),
-                    ReadU32BE(raw[8..12]), ReadU32BE(raw[12..16]));
-
-                if (raw.Length < h.pack_len) break;          // 剩余字节还不够一条
-
-                int bodyLen = (int)(h.pack_len - 16);        // ← 关键修正
-                list.Add((h, raw[16..(16 + bodyLen)].ToArray()));
-
-                raw = raw[(int)h.pack_len..];                // 游标移到下一包
-            }
-            return list;
-        }
-        /// <summary>
-        /// 提前过滤“明显非 JSON”段，返回合法 JsonElement
-        /// </summary>
-        private static IEnumerable<JsonElement> ExtractCommands(byte[] data)
-        {
-            int p = 0, errCnt = 0;
-            while (p < data.Length)
-            {
-                // 1. 长度+JSON：前 3 字节 00 00 00
-                if (p + 4 <= data.Length && data[p] == 0 && data[p + 1] == 0 && data[p + 2] == 0)
-                {
-                    uint len = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(p, 4));
-                    p += 4;
-                    if (len == 0 || p + len > data.Length) { p = (int)Math.Min(p + len, data.Length); continue; }
-                    var seg = data.AsSpan(p, (int)len);
-                    if (seg.Length > 5 && seg[0] == '{' && TryParse(seg, out var doc))
-                        yield return doc.RootElement;
-                    else
-                        errCnt++;
-                    p += (int)len;
-                }
-                // 2. 纯 JSON：首字节 '{'
-                else if (p < data.Length && data[p] == (byte)'{')
-                {
-                    int nl = Array.IndexOf(data, (byte)'\n', p);
-                    if (nl == -1) nl = data.Length;
-                    var seg = data.AsSpan(p, nl - p);
-                    if (seg.Length > 5 && seg[^1] == '}' && TryParse(seg, out var doc))
-                        yield return doc.RootElement;
-                    else
-                        errCnt++;
-                    p = nl + 1;
-                }
-                else
-                {
-                    p++; // 非法字节
-                }
-            }
-
-            static bool TryParse(ReadOnlySpan<byte> seg, out JsonDocument doc)
-            {
-                // 1. 快速预检：必须以 { 开头，以 } 结尾
-                if (seg.Length < 2 || seg[0] != '{' || seg[^1] != '}')
-                {
-                    doc = null!;
-                    return false;
-                }
-                try
-                {
-                    doc = JsonDocument.Parse(seg.ToArray());
-                    return true;
-                }
-                catch
-                {
-                    doc = null!;
-                    return false;   // 静默丢弃，不打印
-                }
-            }
-        }
-        private static bool TryParse(ReadOnlySpan<byte> seg, out JsonDocument doc)
-        {
-            try
-            {
-                doc = JsonDocument.Parse(seg.ToArray()); // ← 转 byte[] 即可
-                return true;
-            }
-            catch
-            {
-                doc = null!;
-                return false;
-            }
-        }
-
-
-        /// <summary>
-        /// 业务白名单，想加功能只扩这里
-        /// </summary>
-        private static readonly HashSet<string> PrintCmds = new()
-        {
-            "DANMU_MSG",
-            "SUPER_CHAT_MESSAGE",
-            "SEND_GIFT",
-            "INTERACT_WORD",
-            "INTERACT_WORD_V2"
-        };
-
-        private void ProcessCommand(JsonElement root)
-        {
-            if (root.TryGetProperty("cmd", out var cmdElement) &&
-                cmdElement.ValueKind == JsonValueKind.String)
-            {
-                var cmdStr = cmdElement.GetString();
-                if (!PrintCmds.Contains(cmdStr)) return;
-
-                // 继续处理
-                try
-                {
-                    switch (cmdStr)
-                    {
-                        case "DANMU_MSG":
-                            var info = root.GetProperty("info");
-                            Console.WriteLine($"💬 {Clean(info[2][1].GetString())}：{Clean(info[1].GetString())}");
-                            break;
-                        case "SUPER_CHAT_MESSAGE":
-                            var sc = root.GetProperty("data");
-                            Console.WriteLine($"🔔 醒目留言 ¥{sc.GetProperty("price").GetInt32() / 100.0:F2}  {sc.GetProperty("uname").GetString()}：{sc.GetProperty("message").GetString()}");
-                            break;
-                        case "SEND_GIFT":
-                            var g = root.GetProperty("data");
-                            Console.WriteLine($"🎁 {g.GetProperty("uname").GetString()} 赠送 {g.GetProperty("giftName").GetString()} ×{g.GetProperty("num").GetInt32()}");
-                            break;
-                        case "INTERACT_WORD":
-                        case "INTERACT_WORD_V2":
-                            var iw = root.GetProperty("data");
-                            var action = iw.GetProperty("msg_type").GetInt32() switch
-                            {
-                                1 => "进入",
-                                2 => "关注",
-                                3 => "分享",
-                                4 => "特别关注",
-                                5 => "互关",
-                                6 => "点赞",
-                                _ => "互动"
-                            };
-                            Console.WriteLine($"👏 {action}：{iw.GetProperty("uname").GetString()}");
-                            break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[BizSkip] {cmdStr} 字段缺失：{ex.Message}");
-                }
-            }
-
-            
-        }
 
 
 
-        #endregion
+
 
             #region --- 工具方法 ---
         private static uint ReadU32BE(ReadOnlySpan<byte> s) => BinaryPrimitives.ReadUInt32BigEndian(s);
@@ -335,7 +230,30 @@ namespace EasyDANMU.src
             return ms.ToArray();
         }
 
-        private readonly struct HeaderTuple
+        private static HeaderTuple UnpackHeader(byte[] data, int offset)
+        {
+            var span = new ReadOnlySpan<byte>(data, offset, 16);
+            if (BitConverter.IsLittleEndian)
+            {
+                var tmp = new byte[16];
+                span.CopyTo(tmp);
+                Array.Reverse(tmp, 0, 4);
+                Array.Reverse(tmp, 4, 2);
+                Array.Reverse(tmp, 6, 2);
+                Array.Reverse(tmp, 8, 4);
+                Array.Reverse(tmp, 12, 4);
+                span = tmp;
+            }
+
+            return new HeaderTuple(
+                packLen: MemoryMarshal.Read<uint>(span.Slice(0, 4)),
+                rawHeaderSize: MemoryMarshal.Read<ushort>(span.Slice(4, 2)),
+                ver: MemoryMarshal.Read<ushort>(span.Slice(6, 2)),
+                operation: MemoryMarshal.Read<uint>(span.Slice(8, 4)),
+                seqId: MemoryMarshal.Read<uint>(span.Slice(12, 4)));
+        }
+
+        public readonly struct HeaderTuple
         {
             public readonly uint pack_len;
             public readonly ushort raw_header_size;
