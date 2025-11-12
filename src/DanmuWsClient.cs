@@ -88,6 +88,7 @@ namespace EasyDANMU.src
         #region --- 解析链路：切包→解压→长度+JSON→打印 ---
         private void ParseMessage(ReadOnlySpan<byte> raw)
         {
+
             if (raw.Length < 16) return;
 
             // 1. 切包（可能一帧多包）
@@ -105,6 +106,7 @@ namespace EasyDANMU.src
                 // 3. 长度+JSON 协议（单条/多条）
                 foreach (var json in ExtractJsons(decompressed))
                     ProcessCommand(json);
+                //Console.WriteLine($"[DEBUG] decompressed len={decompressed.Length}, first16={Convert.ToHexString(decompressed.AsSpan(0, Math.Min(16, decompressed.Length)))}");
             }
         }
 
@@ -127,21 +129,40 @@ namespace EasyDANMU.src
         }
 
         /// <summary>
-        /// 按“长度+JSON”拆多条
+        /// 只过滤“明显非 JSON”段，保留所有潜在 JSON
         /// </summary>
         private static IEnumerable<string> ExtractJsons(byte[] data)
         {
             int p = 0;
-            while (p + 4 <= data.Length)
+            while (p < data.Length)
             {
-                uint len = ReadU32BE(data.AsSpan(p, 4));
-                p += 4;
-                if (p + len > data.Length) yield break;
-                yield return Encoding.UTF8.GetString(data, p, (int)len);
-                p += (int)len;
+                // 情况 1：长度+JSON（前 3 字节 00 00 00）
+                if (p + 4 <= data.Length && data[p] == 0 && data[p + 1] == 0 && data[p + 2] == 0)
+                {
+                    uint len = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(p, 4));
+                    p += 4;
+                    if (len == 0 || p + len > data.Length) { p = (int)Math.Min(p + (int)len, data.Length); continue; }
+                    var segment = data.AsSpan(p, (int)len);
+                    if (segment.Length > 5 && segment[0] == (byte)'{')
+                        yield return Encoding.UTF8.GetString(segment);
+                    p += (int)len;
+                }
+                // 情况 2：纯 JSON（首字节 '{'）
+                else if (p < data.Length && data[p] == (byte)'{')
+                {
+                    int nl = Array.IndexOf(data, (byte)'\n', p);
+                    if (nl == -1) nl = data.Length;
+                    var segment = data.AsSpan(p, nl - p);
+                    if (segment.Length > 5 && segment[^1] == (byte)'}')
+                        yield return Encoding.UTF8.GetString(segment);
+                    p = nl + 1;
+                }
+                else
+                {
+                    p++;   // 非法字节，跳过
+                }
             }
         }
-
         /// <summary>
         /// 单行 JSON → 控制台打印
         /// </summary>
