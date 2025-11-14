@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using EasyDANMU.src;   // WebClient 所在命名空间
 
-await TestHostServerAsync(5513659);   // 任意房间号
+await TestHostServerAsync(7777);   // 任意房间号
 
 static async Task TestHostServerAsync(int tmpRoomId)
 {
@@ -30,6 +30,11 @@ static async Task TestHostServerAsync(int tmpRoomId)
         //    Console.WriteLine("hostList 为 null");
         /* ---------- 1. 一次性拿齐所有初始化数据 ---------- */
         using var http = new HttpClient();
+
+        // ① 手动给的 SESSDATA
+        string sessData = "SESSDATA=4e851d90%2C1778472578%2Ca41d6%2Ab1CjClmcQbtQ5f3E3Q9ODn-gJLh_haInZCvNeXmBDl_h0L80LZQKY3uTw4SXjRK50OCRgSVkNuZUZnMjViWWExWVNfZEJWcHJnbnVyM2xpek1PcEZoXy1LZS1VRUpWM2hIR3hMSGNVT1JOdnNFSm5FWmhLZElYS1FxaS1KVktjTm1yUlliaGgzV0JRIIEC";   // <-- 只填这一段
+                                                             // ② 程序继续自动拿 buvid3 / uid / token
+        http.DefaultRequestHeaders.Add("Cookie", sessData);  // 先放 SESSDATA
         var client = new WebClient(http);
 
         //await client.InitRoomAsync(tmpRoomId);

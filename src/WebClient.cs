@@ -27,10 +27,16 @@ namespace EasyDANMU.src
         /* ---------- 公共入口 ---------- */
         public async Task<RoomInitResult> InitRoomAsync(int tmpRoomId, CancellationToken ct = default)
         {
+
+            // ① 先把短号换成真实房间号
+            var roomTask = LoadRealRoomIdAsync(tmpRoomId, ct);
+            await roomTask;                         // 必须先完成，才能拿到 RealRoomId
+            int realRoomId = roomTask.Result.roomId;
+
+            // ② 后续全部用 realRoomId
             var uidTask = LoadUidAsync(ct);
             var buvidTask = LoadBuvidAsync(ct);
-            var roomTask = LoadRealRoomIdAsync(tmpRoomId, ct);
-            var hostTask = LoadHostServerAsync(tmpRoomId, ct);
+            var hostTask = LoadHostServerAsync(realRoomId, ct);   // 原来是 tmpRoomId
 
             await Task.WhenAll(uidTask, buvidTask, roomTask, hostTask);
 
