@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EasyDANMU")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+009b405b8ebbf969bbffbb9a36a9f3f102d5b764")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c58912fbd157f2a1b9062251ba3bdf8814c71ba3")]
 [assembly: System.Reflection.AssemblyProductAttribute("EasyDANMU")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EasyDANMU")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
