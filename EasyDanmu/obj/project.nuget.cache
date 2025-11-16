@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "EIEdZWT5z10=",
+  "success": true,
+  "projectFilePath": "C:\\DANMU\\EasyDANMU\\EasyDanmu\\EasyDANMU.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\10598\\.nuget\\packages\\websocketsharp.core\\1.0.1\\websocketsharp.core.1.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}

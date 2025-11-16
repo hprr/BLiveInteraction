@@ -1,0 +1,13 @@
+C:\DANMU\BLiveInteraction\bin\Release\net9.0\HttpServer.dll
+C:\DANMU\BLiveInteraction\bin\Release\net9.0\BLiveInteract.deps.json
+C:\DANMU\BLiveInteraction\bin\Release\net9.0\BLiveInteract.dll
+C:\DANMU\BLiveInteraction\bin\Release\net9.0\BLiveInteract.pdb
+C:\DANMU\BLiveInteraction\obj\Release\net9.0\BLiveInteract.csproj.AssemblyReference.cache
+C:\DANMU\BLiveInteraction\obj\Release\net9.0\BLiveInteract.GeneratedMSBuildEditorConfig.editorconfig
+C:\DANMU\BLiveInteraction\obj\Release\net9.0\BLiveInteract.AssemblyInfoInputs.cache
+C:\DANMU\BLiveInteraction\obj\Release\net9.0\BLiveInteract.AssemblyInfo.cs
+C:\DANMU\BLiveInteraction\obj\Release\net9.0\BLiveInteract.csproj.CoreCompileInputs.cache
+C:\DANMU\BLiveInteraction\obj\Release\net9.0\BLiveInteract.dll
+C:\DANMU\BLiveInteraction\obj\Release\net9.0\refint\BLiveInteract.dll
+C:\DANMU\BLiveInteraction\obj\Release\net9.0\BLiveInteract.pdb
+C:\DANMU\BLiveInteraction\obj\Release\net9.0\ref\BLiveInteract.dll

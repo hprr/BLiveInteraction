@@ -1,4 +1,15 @@
-# 基于websocket实现对B站直播弹幕服务器的监听
+# 项目转跳
 
-测试用例见./test/program.cs
+## [Tshock插件-监听B站直播信息](./BLiveInteraction/README.md)
+
+
+
+## [监听B站直播信息基本框架](./EasyDanmu/README.md)
+
+
+
+
+
+
+
 

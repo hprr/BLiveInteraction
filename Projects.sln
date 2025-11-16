@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EasyDanmu", "EasyDanmu", "{67AAB494-1120-98EE-1E45-57A63A0749A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyDANMU", "EasyDanmu\EasyDANMU.csproj", "{E772B5C3-3732-4319-828C-FCDE84D42531}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BLiveInteraction", "BLiveInteraction", "{09BE8249-F6B8-7A5C-3952-06077C837022}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BLiveInteract", "BLiveInteraction\BLiveInteract.csproj", "{9C5E08BF-E101-45DC-A85A-39179B563F0C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E772B5C3-3732-4319-828C-FCDE84D42531}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E772B5C3-3732-4319-828C-FCDE84D42531}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E772B5C3-3732-4319-828C-FCDE84D42531}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E772B5C3-3732-4319-828C-FCDE84D42531}.Debug|x64.Build.0 = Debug|Any CPU
+		{E772B5C3-3732-4319-828C-FCDE84D42531}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E772B5C3-3732-4319-828C-FCDE84D42531}.Debug|x86.Build.0 = Debug|Any CPU
+		{E772B5C3-3732-4319-828C-FCDE84D42531}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E772B5C3-3732-4319-828C-FCDE84D42531}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E772B5C3-3732-4319-828C-FCDE84D42531}.Release|x64.ActiveCfg = Release|Any CPU
+		{E772B5C3-3732-4319-828C-FCDE84D42531}.Release|x64.Build.0 = Release|Any CPU
+		{E772B5C3-3732-4319-828C-FCDE84D42531}.Release|x86.ActiveCfg = Release|Any CPU
+		{E772B5C3-3732-4319-828C-FCDE84D42531}.Release|x86.Build.0 = Release|Any CPU
+		{9C5E08BF-E101-45DC-A85A-39179B563F0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C5E08BF-E101-45DC-A85A-39179B563F0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C5E08BF-E101-45DC-A85A-39179B563F0C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9C5E08BF-E101-45DC-A85A-39179B563F0C}.Debug|x64.Build.0 = Debug|Any CPU
+		{9C5E08BF-E101-45DC-A85A-39179B563F0C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9C5E08BF-E101-45DC-A85A-39179B563F0C}.Debug|x86.Build.0 = Debug|Any CPU
+		{9C5E08BF-E101-45DC-A85A-39179B563F0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C5E08BF-E101-45DC-A85A-39179B563F0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C5E08BF-E101-45DC-A85A-39179B563F0C}.Release|x64.ActiveCfg = Release|Any CPU
+		{9C5E08BF-E101-45DC-A85A-39179B563F0C}.Release|x64.Build.0 = Release|Any CPU
+		{9C5E08BF-E101-45DC-A85A-39179B563F0C}.Release|x86.ActiveCfg = Release|Any CPU
+		{9C5E08BF-E101-45DC-A85A-39179B563F0C}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E772B5C3-3732-4319-828C-FCDE84D42531} = {67AAB494-1120-98EE-1E45-57A63A0749A6}
+		{9C5E08BF-E101-45DC-A85A-39179B563F0C} = {09BE8249-F6B8-7A5C-3952-06077C837022}
+	EndGlobalSection
+EndGlobal

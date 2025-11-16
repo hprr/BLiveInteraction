@@ -1,0 +1,13 @@
+C:\DANMU\$TShock 6 插件适配模版\bin\Debug\net9.0\HttpServer.dll
+C:\DANMU\$TShock 6 插件适配模版\bin\Debug\net9.0\Plugin.deps.json
+C:\DANMU\$TShock 6 插件适配模版\bin\Debug\net9.0\Plugin.dll
+C:\DANMU\$TShock 6 插件适配模版\bin\Debug\net9.0\Plugin.pdb
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\Plugin.csproj.AssemblyReference.cache
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\Plugin.GeneratedMSBuildEditorConfig.editorconfig
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\Plugin.AssemblyInfoInputs.cache
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\Plugin.AssemblyInfo.cs
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\Plugin.csproj.CoreCompileInputs.cache
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\Plugin.dll
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\refint\Plugin.dll
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\Plugin.pdb
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\ref\Plugin.dll

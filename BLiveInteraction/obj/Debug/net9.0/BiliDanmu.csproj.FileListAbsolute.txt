@@ -1,0 +1,26 @@
+C:\DANMU\$TShock 6 插件适配模版\bin\Debug\net9.0\HttpServer.dll
+C:\DANMU\$TShock 6 插件适配模版\bin\Debug\net9.0\BiliDanmu.deps.json
+C:\DANMU\$TShock 6 插件适配模版\bin\Debug\net9.0\BiliDanmu.dll
+C:\DANMU\$TShock 6 插件适配模版\bin\Debug\net9.0\BiliDanmu.pdb
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\BiliDanmu.csproj.AssemblyReference.cache
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\BiliDanmu.GeneratedMSBuildEditorConfig.editorconfig
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\BiliDanmu.AssemblyInfoInputs.cache
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\BiliDanmu.AssemblyInfo.cs
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\BiliDanmu.csproj.CoreCompileInputs.cache
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\BiliDanmu.dll
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\refint\BiliDanmu.dll
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\BiliDanmu.pdb
+C:\DANMU\$TShock 6 插件适配模版\obj\Debug\net9.0\ref\BiliDanmu.dll
+C:\DANMU\BLiveInteraction\obj\Debug\net9.0\BiliDanmu.csproj.AssemblyReference.cache
+C:\DANMU\BLiveInteraction\obj\Debug\net9.0\BiliDanmu.GeneratedMSBuildEditorConfig.editorconfig
+C:\DANMU\BLiveInteraction\obj\Debug\net9.0\BiliDanmu.AssemblyInfoInputs.cache
+C:\DANMU\BLiveInteraction\obj\Debug\net9.0\BiliDanmu.AssemblyInfo.cs
+C:\DANMU\BLiveInteraction\obj\Debug\net9.0\BiliDanmu.csproj.CoreCompileInputs.cache
+C:\DANMU\BLiveInteraction\obj\Debug\net9.0\BiliDanmu.dll
+C:\DANMU\BLiveInteraction\obj\Debug\net9.0\refint\BiliDanmu.dll
+C:\DANMU\BLiveInteraction\obj\Debug\net9.0\BiliDanmu.pdb
+C:\DANMU\BLiveInteraction\bin\Debug\net9.0\HttpServer.dll
+C:\DANMU\BLiveInteraction\bin\Debug\net9.0\BiliDanmu.deps.json
+C:\DANMU\BLiveInteraction\bin\Debug\net9.0\BiliDanmu.dll
+C:\DANMU\BLiveInteraction\bin\Debug\net9.0\BiliDanmu.pdb
+C:\DANMU\BLiveInteraction\obj\Debug\net9.0\ref\BiliDanmu.dll

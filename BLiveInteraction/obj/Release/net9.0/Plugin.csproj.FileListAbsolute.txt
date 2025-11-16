@@ -1,0 +1,13 @@
+d:\游戏\Terraria\服务器\插件源码\$TShock 6 插件适配模版\bin\Release\net9.0\HttpServer.dll
+d:\游戏\Terraria\服务器\插件源码\$TShock 6 插件适配模版\bin\Release\net9.0\Plugin.deps.json
+d:\游戏\Terraria\服务器\插件源码\$TShock 6 插件适配模版\bin\Release\net9.0\Plugin.dll
+d:\游戏\Terraria\服务器\插件源码\$TShock 6 插件适配模版\bin\Release\net9.0\Plugin.pdb
+d:\游戏\Terraria\服务器\插件源码\$TShock 6 插件适配模版\obj\Release\net9.0\Plugin.csproj.AssemblyReference.cache
+d:\游戏\Terraria\服务器\插件源码\$TShock 6 插件适配模版\obj\Release\net9.0\Plugin.GeneratedMSBuildEditorConfig.editorconfig
+d:\游戏\Terraria\服务器\插件源码\$TShock 6 插件适配模版\obj\Release\net9.0\Plugin.AssemblyInfoInputs.cache
+d:\游戏\Terraria\服务器\插件源码\$TShock 6 插件适配模版\obj\Release\net9.0\Plugin.AssemblyInfo.cs
+d:\游戏\Terraria\服务器\插件源码\$TShock 6 插件适配模版\obj\Release\net9.0\Plugin.csproj.CoreCompileInputs.cache
+d:\游戏\Terraria\服务器\插件源码\$TShock 6 插件适配模版\obj\Release\net9.0\Plugin.dll
+d:\游戏\Terraria\服务器\插件源码\$TShock 6 插件适配模版\obj\Release\net9.0\refint\Plugin.dll
+d:\游戏\Terraria\服务器\插件源码\$TShock 6 插件适配模版\obj\Release\net9.0\Plugin.pdb
+d:\游戏\Terraria\服务器\插件源码\$TShock 6 插件适配模版\obj\Release\net9.0\ref\Plugin.dll
