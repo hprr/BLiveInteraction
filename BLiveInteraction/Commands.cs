@@ -1,4 +1,4 @@
-﻿using TShockAPI;
+using TShockAPI;
 using static BLiveInteract.BLiveInsteract;
 using Microsoft.Xna.Framework;
 
@@ -54,28 +54,26 @@ internal class Commands
                         {
                             plr.SendWarningMessage($"B站直播间[{roomid}]互动功能正在运行!");
                             return;
-                            //Config.Enabled = true;
-                            //Config.Write();
-
-                            //plr.SendMessage($"已开启全局插件功能", color);
                         }
                         else if (roomid == -1)
                         {
                             plr.SendWarningMessage($"B站直播间号缺失! 请先使用/blive set <直播间号> 设置直播间!");
                             return;
                         }
-                        // ① 从配置文件拿 SESSDATA
-                        string sessData = "SESSDATA="+Config.SESSDATA;
-                        //TShock.Log.ConsoleDebug($"sessData = {sessData}");
-                        if (string.IsNullOrWhiteSpace(sessData))
+                        // ① 从配置文件拿 SESSDATA（仅在非空时传递）
+                        string sessDataRaw = Config.SESSDATA;
+                        string sessDataHeader = "";
+                        if (string.IsNullOrWhiteSpace(sessDataRaw))
                         {
                             plr.SendWarningMessage("如果想要解决用户名屏蔽问题, 请填写配置项 SESSDATA !");
                         }
-                        //Console.WriteLine($"{sessData}");
-               
+                        else
+                        {
+                            sessDataHeader = "SESSDATA=" + sessDataRaw;
+                        }
 
                         // ③ 交给 Listener
-                        BLiveListener.Instance.Start(roomid, sessData);
+                        BLiveListener.Instance.Start(roomid, sessDataHeader);
                        
                         if (BLiveListener.Instance.IsRunning)
                         {
@@ -184,7 +182,7 @@ internal class Commands
                             BLiveListener.Instance.Stop();
                         }
                         roomid = -1;
-                        plr.SendMessage("[BliveInteract] 已关闭重置B站直播互动!", color);
+                        plr.SendMessage("[BliveInteract] 已重置并关闭B站直播互动!", color);
                         
                     }
                     break;

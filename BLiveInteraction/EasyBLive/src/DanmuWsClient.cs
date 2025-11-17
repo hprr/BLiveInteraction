@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -72,29 +72,39 @@ namespace EasyDANMU.src
             using var ms = new MemoryStream();          // 拼包缓存
             var segment = new ArraySegment<byte>(_buffer); // 每次都复用同一块内存
 
-            while (_ws.State == WebSocketState.Open && !token.IsCancellationRequested)
+            try
             {
-                WebSocketReceiveResult result;
-                do
+                while (_ws.State == WebSocketState.Open && !token.IsCancellationRequested)
                 {
-                    // 用类字段 _buffer 接收
-                    result = await _ws.ReceiveAsync(segment, token);
-                    if (result.MessageType == WebSocketMessageType.Close)
-                        return;
+                    WebSocketReceiveResult result;
+                    do
+                    {
+                        // 用类字段 _buffer 接收
+                        result = await _ws.ReceiveAsync(segment, token);
+                        if (result.MessageType == WebSocketMessageType.Close)
+                        {
+                            // 正常关闭
+                            Disconnected?.Invoke(this, null);
+                            return;
+                        }
 
-                    ms.Write(_buffer, 0, result.Count);   // 拼包
+                        ms.Write(_buffer, 0, result.Count);   // 拼包
+                    }
+                    while (!result.EndOfMessage);
+
+
+                    if (result.MessageType == WebSocketMessageType.Binary)
+                        await ParseWsMessage(ms.ToArray());
+                    else
+                        Console.WriteLine($"room={_auth.roomid} unknown message type={result.MessageType}");
+
+                    ms.SetLength(0); // 重置流，准备下一条消息
                 }
-                while (!result.EndOfMessage);
-
-
-                if (result.MessageType == WebSocketMessageType.Binary)
-                    await ParseWsMessage(ms.ToArray());
-                else
-                    Console.WriteLine($"room={_auth.roomid} unknown message type={result.MessageType}");
-
-                ms.SetLength(0); // 重置流，准备下一条消息
-                // ReceiveLoop 末尾（while 结束后）加一句
-                //Disconnected?.Invoke(this, null);   // 正常关闭
+            }
+            finally
+            {
+                // 循环退出（例如取消）时也通知一次正常断开
+                Disconnected?.Invoke(this, null);
             }
         }
         //解析ws原始数据(可能包含多个包)
@@ -174,12 +184,12 @@ namespace EasyDANMU.src
             {
                 if (header.ver == (ushort)ProtoVer.BROTLI)
                 {
-                    body = await Task.Run(() => DecompressBrotli(body));
+                    body = DecompressBrotli(body);
                     await ParseWsMessage(body);
                 }
                 else if (header.ver == (ushort)ProtoVer.DEFLATE)
                 {
-                    body = await Task.Run(() => DecompressZlib(body));
+                    body = DecompressZlib(body);
                     await ParseWsMessage(body);
                 }
                 else if (header.ver == (ushort)ProtoVer.NORMAL)
@@ -233,8 +243,8 @@ namespace EasyDANMU.src
                 try { _handler.Handle(this, command); }
                 catch (Exception e)
                 {
-                    //TODO.. 报错单独写日志
-                    //Console.WriteLine($"[HandleCommand] handler 异常：{e}");
+                    // 记录处理器异常，便于排查
+                    TShock.Log.Error($"[BLive] Handler 异常：{e}");
                 }
         }
 

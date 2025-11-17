@@ -1,4 +1,4 @@
-﻿
+
 using System.Text.Json.Nodes;
 using System.Text.Json;
 using static EasyDANMU.src.DanmuWsClient;
@@ -44,41 +44,67 @@ namespace EasyDANMU.src
             {
                 ["DANMU_MSG"] = (s, c, cmd) =>
                 {
-                    // cmd["info"] 是 object → 先序列化成字符串 → JsonNode
-                    var json = JsonSerializer.Serialize(cmd["info"]);
-                    var info = JsonNode.Parse(json)!.AsArray();
+                    // 直接使用 JsonElement 原始文本，避免二次序列化
+                    JsonArray info;
+                    if (cmd["info"] is JsonElement je)
+                        info = JsonNode.Parse(je.GetRawText())!.AsArray();
+                    else
+                        info = JsonNode.Parse(JsonSerializer.Serialize(cmd["info"]))!.AsArray();
                     s._on_danmaku(c, DanmakuMessage.FromCommand(info));
                 },
                 ["_HEARTBEAT"] = (s, c, cmd) =>
                 {
-                    var json = JsonSerializer.Serialize(cmd["data"]);
-                    var data = JsonNode.Parse(json)!.AsObject();
+                    JsonObject data;
+                    if (cmd["data"] is JsonElement je)
+                        data = JsonNode.Parse(je.GetRawText())!.AsObject();
+                    else
+                        data = JsonNode.Parse(JsonSerializer.Serialize(cmd["data"]))!.AsObject();
                     s._on_heartbeat(c, HeartbeatMessage.FromCommand(data));
                 },
                 ["SEND_GIFT"] = (s, c, cmd) =>
                 {
-                    var json = JsonSerializer.Serialize(cmd["data"]);
-                    s._on_gift(c, GiftMessage.FromCommand(JsonNode.Parse(json)!.AsObject()));
+                    JsonObject data;
+                    if (cmd["data"] is JsonElement je)
+                        data = JsonNode.Parse(je.GetRawText())!.AsObject();
+                    else
+                        data = JsonNode.Parse(JsonSerializer.Serialize(cmd["data"]))!.AsObject();
+                    s._on_gift(c, GiftMessage.FromCommand(data));
                 },
                 ["GUARD_BUY"] = (s, c, cmd) =>
                 {
-                    var json = JsonSerializer.Serialize(cmd["data"]);
-                    s._on_buy_guard(c, GuardBuyMessage.FromCommand(JsonNode.Parse(json)!.AsObject()));
+                    JsonObject data;
+                    if (cmd["data"] is JsonElement je)
+                        data = JsonNode.Parse(je.GetRawText())!.AsObject();
+                    else
+                        data = JsonNode.Parse(JsonSerializer.Serialize(cmd["data"]))!.AsObject();
+                    s._on_buy_guard(c, GuardBuyMessage.FromCommand(data));
                 },
                 ["USER_TOAST_MSG_V2"] = (s, c, cmd) =>
                 {
-                    var json = JsonSerializer.Serialize(cmd["data"]);
-                    s._on_user_toast_v2(c, UserToastV2Message.FromCommand(JsonNode.Parse(json)!.AsObject()));
+                    JsonObject data;
+                    if (cmd["data"] is JsonElement je)
+                        data = JsonNode.Parse(je.GetRawText())!.AsObject();
+                    else
+                        data = JsonNode.Parse(JsonSerializer.Serialize(cmd["data"]))!.AsObject();
+                    s._on_user_toast_v2(c, UserToastV2Message.FromCommand(data));
                 },
                 ["SUPER_CHAT_MESSAGE"] = (s, c, cmd) =>
                 {
-                    var json = JsonSerializer.Serialize(cmd["data"]);
-                    s._on_super_chat(c, SuperChatMessage.FromCommand(JsonNode.Parse(json)!.AsObject()));
+                    JsonObject data;
+                    if (cmd["data"] is JsonElement je)
+                        data = JsonNode.Parse(je.GetRawText())!.AsObject();
+                    else
+                        data = JsonNode.Parse(JsonSerializer.Serialize(cmd["data"]))!.AsObject();
+                    s._on_super_chat(c, SuperChatMessage.FromCommand(data));
                 },
                 ["SUPER_CHAT_MESSAGE_DELETE"] = (s, c, cmd) =>
                 {
-                    var json = JsonSerializer.Serialize(cmd["data"]);
-                    s._on_super_chat_delete(c, SuperChatDeleteMessage.FromCommand(JsonNode.Parse(json)!.AsObject()));
+                    JsonObject data;
+                    if (cmd["data"] is JsonElement je)
+                        data = JsonNode.Parse(je.GetRawText())!.AsObject();
+                    else
+                        data = JsonNode.Parse(JsonSerializer.Serialize(cmd["data"]))!.AsObject();
+                    s._on_super_chat_delete(c, SuperChatDeleteMessage.FromCommand(data));
                 },
             };
         }

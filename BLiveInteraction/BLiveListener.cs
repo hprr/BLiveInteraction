@@ -56,8 +56,11 @@ namespace BLiveInteract
 
             // 在这里 new，不 using
             _http = new HttpClient();
-            //TShock.Log.ConsoleDebug($"sessData = {sessdata}");
-            _http.DefaultRequestHeaders.Add("Cookie", sessdata);
+            // 仅当配置提供了有效 SESSDATA 时才设置 Cookie
+            if (!string.IsNullOrWhiteSpace(sessdata))
+            {
+                _http.DefaultRequestHeaders.Add("Cookie", sessdata);
+            }
 
 
             // 后台跑整个流程
@@ -129,9 +132,6 @@ namespace BLiveInteract
             {
                 TShock.Log.ConsoleInfo(ex == null ? "[BLive] 弹幕连接已正常关闭" : $"[BLive] 弹幕连接异常：{ex.Message}");
             };
-
-            /* ---------- 5. 启动（阻塞到断线） ---------- */
-            await _wsClient.StartAsync();
 
             /* ---------- 5. 启动（阻塞到断线） ---------- */
             await _wsClient.StartAsync();
