@@ -76,8 +76,15 @@ namespace EasyDANMU.src
                 using var doc = JsonDocument.Parse(json);
                 var data = doc.RootElement.GetProperty("data").GetProperty("wbi_img");
 
-                var imgKey = data.GetProperty("img_url").GetString().Split('/')[^1].Split('.')[0];
-                var subKey = data.GetProperty("sub_url").GetString().Split('/')[^1].Split('.')[0];
+                var imgUrl = data.GetProperty("img_url").GetString();
+                var subUrl = data.GetProperty("sub_url").GetString();
+                if (string.IsNullOrEmpty(imgUrl) || string.IsNullOrEmpty(subUrl))
+                {
+                    throw new InvalidOperationException("[WbiSigner] 缺失 wbi_img url 字段");
+                }
+
+                var imgKey = imgUrl.Split('/')[^1].Split('.')[0];
+                var subKey = subUrl.Split('/')[^1].Split('.')[0];
 
                 _key = MixKeys(imgKey, subKey);
                 _updatedAt = DateTime.UtcNow;
@@ -114,7 +121,7 @@ namespace EasyDANMU.src
             var sorted = new SortedDictionary<string, object>(tmp);
             var filtered = sorted.ToDictionary(
                 kv => kv.Key,
-                kv => string.Concat(kv.Value.ToString().Where(c => !"!'()*".Contains(c))));
+                kv => string.Concat((kv.Value?.ToString() ?? string.Empty).Where(c => !"!'()*".Contains(c))));
 
             var query = string.Join("&",
                 filtered.Select(kv => $"{kv.Key}={Uri.EscapeDataString(kv.Value)}"));

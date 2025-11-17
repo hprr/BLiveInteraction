@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -461,17 +461,25 @@ namespace EasyDANMU.src
 
     public class SuperChatDeleteMessage
     {
-        public List<long> ids = new();
+        public List<long> ids { get; set; } = new();
 
         public static SuperChatDeleteMessage FromCommand(JsonObject data)
         {
             var arr = data["ids"]?.AsArray();
-            return new SuperChatDeleteMessage
+            var result = new SuperChatDeleteMessage();
+            if (arr != null)
             {
-                ids = arr != null
-                    ? arr.Select(t => t.GetValue<long>()).ToList()
-                    : new List<long>()
-            };
+                var list = new List<long>();
+                foreach (var node in arr)
+                {
+                    if (node != null)
+                    {
+                        list.Add(node.GetValue<long>());
+                    }
+                }
+                result.ids = list;
+            }
+            return result;
         }
     }
 

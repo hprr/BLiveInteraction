@@ -26,20 +26,20 @@ namespace EasyDANMU.src
         //取消令牌
         private readonly CancellationTokenSource _cts = new();
         //回调处理接口
-        public HandlerInterface _handler { get; set; }
-        public event Action<DanmuWsClient, Dictionary<string, object>> MessageReceived;
-        public event Action<DanmuWsClient, Exception> Disconnected;
+        public HandlerInterface? _handler { get; set; }
+        public event Action<DanmuWsClient, Dictionary<string, object?>>? MessageReceived;
+        public event Action<DanmuWsClient, Exception?>? Disconnected;
 
         // 如果后台还想等收包任务，就留一个字段
-        private Task _receiveTask;
+        private Task? _receiveTask;
         #endregion
 
         public void set_handler(HandlerInterface handler) => _handler = handler;
 
         public interface HandlerInterface
         {
-            void Handle(DanmuWsClient client, Dictionary<string, object> command);
-            void OnClientStopped(DanmuWsClient client, Exception exc);
+            void Handle(DanmuWsClient client, Dictionary<string, object?> command);
+            void OnClientStopped(DanmuWsClient client, Exception? exc);
         }
 
 
@@ -162,10 +162,10 @@ namespace EasyDANMU.src
                     Array.Reverse(popBytes);
                 var popularity = BitConverter.ToUInt32(popBytes, 0);
                 //Console.WriteLine($"人气值:{popularity}");
-                var cmd = new Dictionary<string, object>
+                var cmd = new Dictionary<string, object?>
                 {
                     ["cmd"] = "_HEARTBEAT",
-                    ["data"] = new Dictionary<string, object>
+                    ["data"] = new Dictionary<string, object?>
                     {
                         ["popularity"] = popularity
                     }
@@ -198,8 +198,12 @@ namespace EasyDANMU.src
                     {
                         try
                         {
-                            var json = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                                Encoding.UTF8.GetString(body));
+                            var json = JsonSerializer.Deserialize<Dictionary<string, object?>>(Encoding.UTF8.GetString(body));
+                            if (json is null)
+                            {
+                                Console.WriteLine($"[ParseBusinessMessage] room={_auth.roomid} body parse null");
+                                return;
+                            }
                             HandleCommand(json);
                         }
                         catch
@@ -216,12 +220,17 @@ namespace EasyDANMU.src
             }
             else if (header.operation == (uint)Operation.AUTH_REPLY)
             {
-                var json = JsonSerializer.Deserialize<Dictionary<string, object>>(Encoding.UTF8.GetString(body));
+                var json = JsonSerializer.Deserialize<Dictionary<string, object?>>(Encoding.UTF8.GetString(body));
+                if (json is null)
+                {
+                    Console.WriteLine($"[ParseBusinessMessage] AUTH_REPLY parse null");
+                    return;
+                }
                 //Console.WriteLine($"[ParseBusinessMessage] AUTH_REPLY：{JsonSerializer.Serialize(json)}");
 
-                if (json.ContainsKey("code") && ((JsonElement)json["code"]).GetInt32() != (int)AuthReplyCode.OK)
+                if (json.TryGetValue("code", out var codeObj) && codeObj is JsonElement codeEl && codeEl.GetInt32() != (int)AuthReplyCode.OK)
                 {
-                    throw new AuthError($"认证失败: code={json["code"]}");
+                    throw new AuthError($"认证失败: code={codeEl.GetInt32()}");
                 }
 
             }
@@ -233,7 +242,7 @@ namespace EasyDANMU.src
 
         }
 
-        private void HandleCommand(Dictionary<string, object> command)
+        private void HandleCommand(Dictionary<string, object?> command)
         {
             // 1. 先给用户 lambda 事件（保持兼容）
             MessageReceived?.Invoke(this, command);
@@ -253,7 +262,8 @@ namespace EasyDANMU.src
             _cts.Cancel();
             try
             {
-                Task.WaitAll(new[] { _receiveTask }, 5_000); // 若有后台任务
+                if (_receiveTask != null)
+                    Task.WaitAll(new[] { _receiveTask }, 5_000); // 若有后台任务
             }
             catch { /* 忽略超时 */ }
 
@@ -267,7 +277,7 @@ namespace EasyDANMU.src
         #region --- 发包/心跳 ---
         private async Task SendAuthAsync()
         {
-            var p = new Dictionary<string, object>
+            var p = new Dictionary<string, object?>
             {
                 ["uid"] = _auth.uid, ["roomid"] = _auth.roomid, ["protover"] = 3,
                 ["buvid"] = _auth.buvid, ["platform"] = "web", ["key"] = _auth.key, ["type"] = 2

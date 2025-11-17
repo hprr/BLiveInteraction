@@ -17,15 +17,15 @@ namespace BLiveInteract
     /// </summary>
     public sealed class BLiveListener
     {
-        private static BLiveListener _instance;
+        private static BLiveListener? _instance;
         private static readonly object _lock = new();
 
-        private DanmuWsClient _wsClient;
-        private CancellationTokenSource _cts;
+        private DanmuWsClient _wsClient = default!;
+        private CancellationTokenSource _cts = default!;
         private bool _running;
         private int _roomId;
 
-        private HttpClient _http;   // 生命周期跟随 Listener
+        private HttpClient _http = default!;   // 生命周期跟随 Listener
         private BroadcastManager? _broadcast;
         private int _broadcastMaxPerSecond;
 
@@ -167,9 +167,21 @@ namespace BLiveInteract
             TShock.Log.ConsoleInfo($"[BLive] 房间初始化完成，真实房间号={init.RealRoomId}");
 
             /* ---------- 2. 选第一台服务器 ---------- */
-            var first = init.HostServerList.First();
-            var host = first["host"].ToString();
-            var port = int.Parse(first["wss_port"].ToString());
+            var first = init.HostServerList.FirstOrDefault();
+            if (first == null)
+            {
+                TShock.Log.Warn("[BLive] 未获取到直播服务器列表");
+                throw new InvalidOperationException("没有可用的直播服务器");
+            }
+            var hostObj = first.GetValueOrDefault("host");
+            var portObj = first.GetValueOrDefault("wss_port");
+            var host = hostObj?.ToString() ?? string.Empty;
+            var portStr = portObj?.ToString();
+            if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(portStr) || !int.TryParse(portStr, out var port))
+            {
+                TShock.Log.Warn("[BLive] 服务器信息不完整，host/port 无法解析");
+                throw new InvalidOperationException("直播服务器信息无效");
+            }
 
             /* ---------- 3. 建 WebSocket ---------- */
             _wsClient = new DanmuWsClient(

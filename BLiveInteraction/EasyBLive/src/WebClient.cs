@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using TShockAPI;
 
@@ -138,12 +138,12 @@ namespace EasyDANMU.src
                 var list = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(
                                  data.GetProperty("host_list").GetRawText());
                 var token = data.GetProperty("token").ToString();
-                return (list, token);
+                return (list ?? new List<Dictionary<string, object>>(), token ?? string.Empty);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[WARN] LoadHostServerAsync: {ex.Message}");
-                return (null, null);
+                return (new List<Dictionary<string, object>>(), string.Empty);
             }
         }
 
@@ -154,7 +154,7 @@ namespace EasyDANMU.src
         {
             var signed = _wbi.Sign(param);
             var query = string.Join("&",
-                signed.Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value.ToString())}"));
+                signed.Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value?.ToString() ?? string.Empty)}"));
             var url = $"https://api.live.bilibili.com{path}?{query}";
 
             TShock.Log.ConsoleInfo($"[WebClient] 请求路由: {url}");
